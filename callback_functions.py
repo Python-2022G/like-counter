@@ -5,14 +5,12 @@ from telegram import (
 )
 from telegram.ext import CallbackContext
 
-like = 0
-dislike = 0
 
 def start(update: Update, context: CallbackContext) -> None:
     """welcome function"""
     # create buttons
-    btn1 = InlineKeyboardButton(text='👍', callback_data='like button')
-    btn2 = InlineKeyboardButton(text='👎', callback_data='dislike button')
+    btn1 = InlineKeyboardButton(text='👍: 0', callback_data='like')
+    btn2 = InlineKeyboardButton(text='👎: 0', callback_data='dislike')
 
     # create keyboard
     inline_keyboard = [[btn1, btn2]]
@@ -31,13 +29,25 @@ def callback_func(update: Update, context: CallbackContext) -> None:
     """welcome function"""
     callback_data = update.callback_query.data
 
-    global like
-    global dislike
+    like_and_dislike_data = update.callback_query.message.reply_markup.inline_keyboard
 
-    if callback_data == 'like button':
-        like += 1
-    if callback_data == 'dislike button':
-        dislike += 1
+    like_data = like_and_dislike_data[0][0]
+    dislike_data = like_and_dislike_data[0][1]
 
-    chat_id = update.callback_query.from_user.id
-    context.bot.sendMessage(chat_id=chat_id, text=f'<b>likes:</b> {like}\n<b>dislikes:</b> {dislike}', parse_mode='HTML')
+    
+    if callback_data == 'like':
+        _, count = like_data.text.split(': ') 
+        like_data.text = f'👍: {int(count) + 1}'
+    
+    if callback_data == 'dislike':
+        _, count = dislike_data.text.split(': ')
+        dislike_data.text = f'👎: {int(count) + 1}'
+
+    # create buttons
+    btn1 = InlineKeyboardButton(text=like_data.text, callback_data=like_data.callback_data)
+    btn2 = InlineKeyboardButton(text=dislike_data.text, callback_data=dislike_data.callback_data)
+
+    # create keyboard
+    inline_keyboard = [[btn1, btn2]]
+    
+    update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(inline_keyboard=inline_keyboard))
