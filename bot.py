@@ -1,8 +1,12 @@
 import os
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import (
+    Updater, CommandHandler, 
+    MessageHandler, Filters, 
+    CallbackQueryHandler,
+)
 from callback_functions import (
     start,
-    like_or_dislike,
+    callback_func,
 )
 
 # get token from env variables
@@ -18,7 +22,7 @@ def main():
 
     # add handlers
     dp.add_handler(handler=CommandHandler(command=['start', 'boshlash'], callback=start))
-    dp.add_handler(handler=MessageHandler(filters=Filters.text(['👍', '👎']), callback=like_or_dislike))
+    dp.add_handler(handler=CallbackQueryHandler(callback=callback_func))
 
 
     # start polling
