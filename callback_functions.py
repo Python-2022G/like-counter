@@ -1,53 +1,46 @@
 from telegram import (
-    Update, 
-    InlineKeyboardMarkup, 
-    InlineKeyboardButton,
+    Update,
 )
 from telegram.ext import CallbackContext
+from tinydb import TinyDB
+from tinydb.table import Document
+
+db = TinyDB('users.json', indent=4)
 
 
 def start(update: Update, context: CallbackContext) -> None:
     """welcome function"""
-    # create buttons
-    btn1 = InlineKeyboardButton(text='👍: 0', callback_data='like')
-    btn2 = InlineKeyboardButton(text='👎: 0', callback_data='dislike')
-
-    # create keyboard
-    inline_keyboard = [[btn1, btn2]]
-
-    # get first name 
+    # get user data 
     first_name = update.message.chat.first_name
+    chat_id = update.message.chat.id
+    username = update.message.chat.username
 
-    # send message with two buttons
-    update.message.reply_html(
-        text=f'Hello, <b>{first_name}</b>. Welcome to our bot!\n\npress one of the buttons.',
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
-    )
+    if not db.contains(doc_id=chat_id):
+        doc = Document(
+            value={
+                "first_name": first_name,
+                "username": username
+            },
+            doc_id=chat_id
+        )
+        db.insert(doc)
+
+        # send message
+        update.message.reply_html(
+            text=f'Hello, <b>{first_name}</b>. Welcome to our bot!\n\nyou are registred.',
+        )
+    else:
+        update.message.reply_html(
+            text=f'Hello again, <b>{first_name}</b>. you are already registred.',
+        )
 
 
-def callback_func(update: Update, context: CallbackContext) -> None:
+
+def users(update: Update, context: CallbackContext) -> None:
     """welcome function"""
-    callback_data = update.callback_query.data
-
-    like_and_dislike_data = update.callback_query.message.reply_markup.inline_keyboard
-
-    like_data = like_and_dislike_data[0][0]
-    dislike_data = like_and_dislike_data[0][1]
-
-    
-    if callback_data == 'like':
-        _, count = like_data.text.split(': ') 
-        like_data.text = f'👍: {int(count) + 1}'
-    
-    if callback_data == 'dislike':
-        _, count = dislike_data.text.split(': ')
-        dislike_data.text = f'👎: {int(count) + 1}'
-
-    # create buttons
-    btn1 = InlineKeyboardButton(text=like_data.text, callback_data=like_data.callback_data)
-    btn2 = InlineKeyboardButton(text=dislike_data.text, callback_data=dislike_data.callback_data)
-
-    # create keyboard
-    inline_keyboard = [[btn1, btn2]]
-    
-    update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(inline_keyboard=inline_keyboard))
+    text = ''
+    for user in db.all():
+        text += f"{user['chat_id']}: {user['first_name']}\n"
+    update.message.reply_html(
+        text=text
+    )

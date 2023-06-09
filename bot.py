@@ -1,13 +1,12 @@
 import os
 from telegram.ext import (
-    Updater, CommandHandler, 
-    MessageHandler, Filters, 
-    CallbackQueryHandler,
+    Updater, CommandHandler,
 )
 from callback_functions import (
     start,
-    callback_func,
+    users,
 )
+
 
 # get token from env variables
 TOKEN = os.environ.get('TOKEN')
@@ -21,8 +20,8 @@ def main():
     dp = updater.dispatcher
 
     # add handlers
-    dp.add_handler(handler=CommandHandler(command=['start', 'boshlash'], callback=start))
-    dp.add_handler(handler=CallbackQueryHandler(callback=callback_func))
+    dp.add_handler(handler=CommandHandler(command='start', callback=start))
+    dp.add_handler(handler=CommandHandler(command='users', callback=users))
 
 
     # start polling
